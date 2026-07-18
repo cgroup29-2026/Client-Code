@@ -6,19 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorldExplorer - חוקרים את העולם</title>
 
-    <!-- חיבור לקובץ העיצוב שלנו -->
     <link rel="stylesheet" href="CSS/StyleSheet.css">
 
-    <!-- חיבור ל-jQuery כדי שנהיה מוכנים לקריאות ה-AJAX מול השרת -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <!-- חיבור לאייקונים (FontAwesome) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 </head>
 <body>
 
-    <!-- תפריט ניווט עליון מבוסס אפקט זכוכית -->
     <header>
         <div class="logo">
             <i class="fas fa-globe-americas"></i> WorldExplorer
@@ -26,11 +22,9 @@
         <nav>
             <ul>
                 <li><a href="index.html" class="active">דף הבית</a></li>
-                <!-- הוספנו את הדף שהמרצים דרשו בסילבוס -->
                 <li><a href="#">תכונות מתקדמות</a></li>
                 <li><a href="Pages/my-lists.html">מפת הנסיעות שלי</a></li>
 
-                <!-- אזור המשתמש המחובר (מוסתר כברירת מחדל, יופעל דרך ה-JS) -->
                 <li id="userGreetingLi" style="display: none;">
                     <span id="userGreeting" style="font-weight: bold; color: #fff; margin-left: 15px; margin-right: 15px;"></span>
                 </li>
@@ -38,7 +32,6 @@
                     <a href="#" id="btnLogout">התנתקות</a>
                 </li>
 
-                <!-- כפתורי התחברות והרשמה (יוסתרו ברגע שמשתמש יתחבר) -->
                 <li id="loginLi"><a href="pages/login.html">התחברות</a></li>
                 <li id="registerLi"><a href="pages/register.html" class="btn">הרשמה</a></li>
 
@@ -46,24 +39,19 @@
         </nav>
     </header>
 
-    <!-- אזור פתיח (Hero) -->
     <section class="hero">
         <h1>גלו את העולם מחדש</h1>
         <p>מידע, נתונים ומפות על כל מדינות העולם במקום אחד</p>
 
-        <!-- הכפתור שאליו מחוברת קריאת ה-AJAX -->
         <div style="margin-top: 30px;">
             <button class="btn" id="loadCountriesBtn"><i class="fas fa-search"></i> טען מדינות מהשרת</button>
         </div>
     </section>
 
-    <!-- אזור התוכן המרכזי: לכאן ה-JavaScript יזריק את המדינות -->
     <main class="container">
         <div class="countries-grid" id="countriesContainer">
 
-            <!-- כרטיסיית דוגמה (כדי לראות את אפקט הזכוכית) - תוחלף ברגע שנלחץ על הכפתור -->
             <div class="country-card fade-in-up">
-                <!-- תמונת הדגל ברקע -->
                 <div class="card-img-placeholder" style="background-image: url('https://flagcdn.com/w320/il.png');"></div>
 
                 <div class="card-content">
@@ -85,21 +73,17 @@
                     </div>
                 </div>
 
-                <!-- כפתורי פעולה בתחתית הכרטיסייה -->
                 <div class="card-actions">
                     <button class="btn" style="padding: 8px 15px; font-size: 0.9rem;">פרטים נוספים</button>
-                    <!-- כפתור הוספה לרשימת "רוצה לבקר" -->
                     <button class="btn" title="הוסף לרשימת משאלות" style="padding: 8px 15px; font-size: 0.9rem; background: transparent; border-color: white;">
                         <i class="far fa-heart"></i>
                     </button>
                 </div>
             </div>
-            <!-- סוף כרטיסיית דוגמה -->
 
         </div>
     </main>
 
-    <!-- חיבור קובץ הלוגיקה שלנו -->
     <script src="JS/AjaxCall.js"></script>
 
 </body>
