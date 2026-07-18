@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הרשימות שלי - WorldExplorer</title>
+
+    <link rel="stylesheet" href="../css/StyleSheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <i class="fas fa-globe-americas"></i> WorldExplorer
+        </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html">חזרה לדף הבית</a></li>
+                <li><a href="#" class="active">הרשימות שלי</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="lists-layout fade-in-up">
+
+        <div class="map-wrapper">
+            <h2 style="margin-top: 0; color: white;"><i class="fas fa-map"></i> מפת המסעות שלי</h2>
+            <div id="world-map"></div>
+        </div>
+
+        <div class="checklists-wrapper">
+
+            <div class="checklist-box">
+                <h3><i class="fas fa-check-circle" style="color: #2ecc71;"></i> כבר ביקרתי</h3>
+
+                <label class="check-item"><input type="checkbox" class="visited-cb" value="US" checked> ארצות הברית</label>
+                <label class="check-item"><input type="checkbox" class="visited-cb" value="GR" checked> יוון</label>
+                <label class="check-item"><input type="checkbox" class="visited-cb" value="RO" checked> רומניה</label>
+            </div>
+
+            <div class="checklist-box">
+                <h3><i class="fas fa-heart" style="color: #f39c12;"></i> היעד הבא שלי</h3>
+
+                <label class="check-item"><input type="checkbox" class="want-cb" value="JP" checked> יפן</label>
+                <label class="check-item"><input type="checkbox" class="want-cb" value="GB" checked> בריטניה (סקוטלנד/אנגליה)</label>
+                <label class="check-item"><input type="checkbox" class="want-cb" value="IE" checked> אירלנד</label>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const map = new jsVectorMap({
+                selector: '#world-map',
+                map: 'world',
+                zoomButtons: false,
+                regionStyle: {
+                    initial: {
+                        fill: 'rgba(255, 255, 255, 0.2)',
+                        stroke: 'rgba(255, 255, 255, 0.4)',
+                        strokeWidth: 0.5
+                    },
+                    hover: {
+                        fill: 'rgba(52, 152, 219, 0.8)' // צבע במעבר עכבר
+                    }
+                },
+                onLoaded(map) {
+                    updateMapColors();
+                }
+            });
+
+            function updateMapColors() {
+                document.querySelectorAll('.jvm-region').forEach(path => {
+                    path.style.fill = 'rgba(255, 255, 255, 0.2)';
+                });
+
+                document.querySelectorAll('.visited-cb:checked').forEach(cb => {
+                    let code = cb.value;
+                    let countryPath = document.querySelector(`.jvm-region[data-code="${code}"]`);
+                    if(countryPath) {
+                        countryPath.style.fill = '#2ecc71'; 
+                    }
+                });
+
+                document.querySelectorAll('.want-cb:checked').forEach(cb => {
+                    let code = cb.value;
+                    let countryPath = document.querySelector(`.jvm-region[data-code="${code}"]`);
+                    if(countryPath) {
+                        countryPath.style.fill = '#f39c12'; 
+                    }
+                });
+            }
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', updateMapColors);
+            });
+
+        });
+    </script>
+</body>
+</html>
