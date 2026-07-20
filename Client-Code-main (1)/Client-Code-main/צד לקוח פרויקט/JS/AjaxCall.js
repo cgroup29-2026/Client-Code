@@ -89,6 +89,20 @@ $(document).ready(function () {
         window.location.reload();
     });
 
+    // הגנה על תיבות הסימון - עצירת הקליק אם המשתמש לא מחובר או נעול
+    $(document).on('click', '.list-box input[type="checkbox"]', function (e) {
+        if (!isLoggedIn()) {
+            e.preventDefault(); // מונע מה-V להופיע בתיבה
+            alert("עליך להתחבר לאתר תחילה כדי לנהל את הרשימות שלך.");
+            return false;
+        }
+        if (isUserLocked()) {
+            e.preventDefault();
+            alert("חשבונך הוגבל. אינך מורשה לנהל רשימות.");
+            return false;
+        }
+    });
+
     // טעינת מדינות בעת כניסה לדף החידונים
     if ($("#quizSelectionScreen").length > 0) {
         ajaxCall("GET", `${apiUrl}/GetAllCountries`, null, function (data) {
@@ -195,30 +209,82 @@ function initMap() {
         map: 'world',
         zoomButtons: true,
         regionStyle: {
-            initial: { fill: '#64748b', stroke: '#1e293b', strokeWidth: 0.5 },
-            hover: { fill: '#3b82f6' }
+            initial: { fill: '#64748b', stroke: '#0f172a', strokeWidth: 0.5 },
+            hover: { fill: '#3b82f6', fillOpacity: 0.8 }
         },
         onLoaded(map) {
             updateMapColors();
         },
+        // --- יצירת החלונית האינטראקטיבית המקצועית ---
+        onRegionTooltipShow(event, tooltip, code) {
+            let country = alpha2ToCountry[code];
+            if (country) {
+                let status = "לא נשמר ברשימות";
+                let statusColor = "#94a3b8";
+                let icon = "";
+
+                if (userLists["הייתי שם 🌍"].includes(country.id)) {
+                    status = "הייתי שם"; statusColor = "#2ecc71"; icon = "🌍";
+                } else if (userLists["יעדים לטיסה ✈️"].includes(country.id)) {
+                    status = "יעד לטיסה"; statusColor = "#f39c12"; icon = "✈️";
+                } else if (userLists["מועדפים ❤️"].includes(country.id)) {
+                    status = "במועדפים"; statusColor = "#ef4444"; icon = "❤️";
+                }
+
+                let tooltipHtml = `
+                    <div style="text-align: right; padding: 12px; min-width: 180px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                            <img src="${country.flagImageUrl}" style="width: 30px; height: 20px; object-fit: cover; border-radius: 3px;">
+                            <strong style="font-size: 1.1rem;">${country.name}</strong>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 8px;">
+                            <i class="fas fa-city" style="color: #94a3b8; margin-left: 5px;"></i>בירה: ${country.city || 'לא צוין'}
+                        </div>
+                        <div style="font-size: 0.95rem; color: ${statusColor}; font-weight: bold;">
+                            ${icon} ${status}
+                        </div>
+                    </div>
+                `;
+                tooltip.html(tooltipHtml);
+            } else {
+                tooltip.html(`<div style="padding: 10px; text-align: center;">${tooltip.text()}<br><span style="color: #ef4444; font-size: 0.8rem;">מידע לא זמין</span></div>`);
+            }
+        },
+        // --- לוגיקת לחיצה נקייה יותר ---
         onRegionClick: function (event, code) {
+            // הברקס למשתמשים לא מחוברים
+            if (!isLoggedIn()) {
+                alert("עליך להתחבר לאתר תחילה כדי לסמן מדינות על המפה.");
+                return;
+            }
+            // הברקס למשתמשים נעולים (אם כבר הוספת אותו קודם)
+            if (isUserLocked()) {
+                alert("חשבונך הוגבל. אינך מורשה לבצע פעולה זו.");
+                return;
+            }
+
             let country = alpha2ToCountry[code];
             if (!country) return;
 
             let id = country.id;
             let isVisited = userLists["הייתי שם 🌍"].includes(id);
             let isWant = userLists["יעדים לטיסה ✈️"].includes(id);
+            let isFav = userLists["מועדפים ❤️"].includes(id);
 
-            if (!isVisited && !isWant) {
+            // סבב לחיצות פשוט: הייתי שם -> יעד לטיסה -> מועדף -> הסרה
+            if (!isVisited && !isWant && !isFav) {
                 userLists["הייתי שם 🌍"].push(id);
             } else if (isVisited) {
                 userLists["הייתי שם 🌍"] = userLists["הייתי שם 🌍"].filter(x => x !== id);
                 userLists["יעדים לטיסה ✈️"].push(id);
-            } else {
+            } else if (isWant) {
                 userLists["יעדים לטיסה ✈️"] = userLists["יעדים לטיסה ✈️"].filter(x => x !== id);
+                userLists["מועדפים ❤️"].push(id);
+            } else {
+                userLists["מועדפים ❤️"] = userLists["מועדפים ❤️"].filter(x => x !== id);
             }
 
-            saveUserLists(); // שמירה דינמית
+            saveUserLists();
             syncCheckboxes();
             updateMapColors();
         }
@@ -259,18 +325,27 @@ function syncCheckboxes() {
 // =========================================
 // פונקציית בדיקת מצב התחברות (UI)
 // =========================================
+// =========================================
+// פונקציית בדיקת מצב התחברות (UI)
+// =========================================
+// =========================================
+// פונקציית בדיקת מצב התחברות (UI)
+// =========================================
 function checkLoginStatus() {
     let loggedInUser = sessionStorage.getItem("loggedInUser");
-    let isAdmin = sessionStorage.getItem("isAdmin") === "true"; // בדיקה האם יש דגל מנהל
+    let isAdmin = sessionStorage.getItem("isAdmin") === "true";
 
     if (loggedInUser) {
+        // המשתמש מחובר
         $("#userGreetingLi").show();
         $("#userGreeting").text("שלום, " + loggedInUser);
         $("#logoutLi").show();
+
+        // מסתיר את שני הכפתורים
         $("#loginLi").hide();
         $("#registerLi").hide();
 
-        // אם הוא מנהל - נציג לו את הקישור לפאנל
+        // בדיקת ניהול
         if (isAdmin) {
             $("#adminLinkLi").show();
         } else {
@@ -278,11 +353,14 @@ function checkLoginStatus() {
         }
 
     } else {
+        // המשתמש לא מחובר
         $("#userGreetingLi").hide();
         $("#logoutLi").hide();
+        $("#adminLinkLi").hide();
+
+        // מציג את שני הכפתורים הרגילים!
         $("#loginLi").show();
         $("#registerLi").show();
-        $("#adminLinkLi").hide();
     }
 }
 
@@ -341,6 +419,11 @@ function loginSuccess(data) {
 }
 
 // פונקציית עזר חכמה שבודקת אם המשתמש מוגבל
+// פונקציית עזר לבדיקה אם יש משתמש מחובר כרגע
+function isLoggedIn() {
+    let email = sessionStorage.getItem("loggedInEmail");
+    return email !== null && email !== "";
+}
 function isUserLocked() {
     return sessionStorage.getItem("isLocked") === "true";
 }
@@ -390,7 +473,7 @@ function renderCountries(countriesToRender) {
                 </div>
                 
                 <div class="card-actions" style="display: flex; gap: 8px; align-items: center; padding: 15px;">
-                    <button class="btn" style="padding: 8px; font-size: 0.85rem; flex-grow: 1;">פרטים</button>
+                    <button class="btn" onclick="openDetailsModal('${country.id}')" style="padding: 8px; font-size: 0.85rem; flex-grow: 1;">פרטים</button>
                     <button class="btn" onclick="openSharesModal('${country.id}', '${safeName}')" style="padding: 8px; font-size: 0.85rem; background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; flex-grow: 1;">קהילה</button>
                     <button class="btn" onclick="openSaveModal('${country.id}')" title="הוסף לרשימה" style="padding: 8px 12px; font-size: 0.9rem; background: transparent; border-color: white;">
                         <i class="far fa-heart"></i>
@@ -452,11 +535,14 @@ function populateCurrencyDropdown() {
 }
 
 function openSaveModal(countryId) {
+    if (!isLoggedIn()) {
+        alert("עליך להתחבר לאתר תחילה כדי לשמור מדינות.");
+        return;
+    }
     if (isUserLocked()) {
         alert("חשבונך הוגבל. אינך מורשה לשמור מדינות לרשימות.");
         return;
     }
-
     currentSelectedCountryId = countryId;
     $("#saveModal").fadeIn();
 }
@@ -1009,3 +1095,165 @@ function toggleLock(email, lockState) {
         });
     }
 }
+
+// =========================================
+// מודל פרטים מורחבים על מדינה
+// =========================================
+function openDetailsModal(countryId) {
+    let country = allCountries.find(c => String(c.id) === String(countryId));
+    if (!country) return;
+
+    let displayImage = (country.flagImageUrl && country.flagImageUrl.startsWith("http")) ? country.flagImageUrl : "[https://placehold.co/320x180/0f172a/ffffff?text=No+Flag](https://placehold.co/320x180/0f172a/ffffff?text=No+Flag)";
+
+    let detailsHtml = `
+        <div style="text-align: center; margin-bottom: 25px;">
+            <img src="${displayImage}" alt="Flag" style="max-width: 250px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+            <h2 style="color: white; font-size: 2.2rem; margin: 15px 0 5px 0;">${country.name}</h2>
+        </div>
+        
+        <div class="details-grid-modal">
+            <div class="detail-item"><i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i> <strong>אזור יבשת:</strong> ${country.region || 'לא צוין'}</div>
+            <div class="detail-item"><i class="fas fa-city" style="color: #10b981;"></i> <strong>עיר בירה:</strong> ${country.city || 'לא צוין'}</div>
+            <div class="detail-item"><i class="fas fa-users" style="color: #f59e0b;"></i> <strong>אוכלוסייה:</strong> ${(country.population || 0).toLocaleString()} תושבים</div>
+            <div class="detail-item"><i class="fas fa-ruler-combined" style="color: #8b5cf6;"></i> <strong>שטח:</strong> ${(country.area || 0).toLocaleString()} קמ"ר</div>
+            <div class="detail-item"><i class="fas fa-money-bill-wave" style="color: #2ecc71;"></i> <strong>מטבע:</strong> ${country.currency || 'לא צוין'}</div>
+            <div class="detail-item"><i class="fas fa-language" style="color: #ef4444;"></i> <strong>שפה עיקרית:</strong> ${country.language || 'לא צוין'}</div>
+        </div>
+
+       <!-- אזור ה-AI החדש - צ'אט מותאם אישית -->
+        <div style="margin-top: 30px; text-align: right; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+            <h3 style="color: #a78bfa; margin-bottom: 15px; font-size: 1.3rem;"><i class="fas fa-robot"></i> תכנון טיול אישי עם AI</h3>
+
+            <textarea id="aiUserInput" rows="3" placeholder="לדוגמה: אנחנו 10 חברים, מחפשים מסלול של 6 ימים שכולל השכרת רכבים ולינה בבקתת עץ עם מנגל בחוץ..." style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #8b5cf6; margin-bottom: 15px; font-family: inherit; resize: vertical;"></textarea>
+
+            <div style="text-align: left;">
+                <button id="btnAiItinerary" class="btn" onclick="generateAIItinerary('${country.name.replace(/'/g, "\\'")}')" style="background: linear-gradient(45deg, #8b5cf6, #3b82f6); border: none; padding: 10px 20px; font-size: 1rem; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
+                    <i class="fas fa-paper-plane"></i> שאל את ה-AI
+                </button>
+            </div>
+            
+            <div id="aiLoading" style="display: none; margin-top: 20px; color: #a78bfa; text-align: center;">
+                <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+                <p style="margin-top: 10px;">הבינה המלאכותית חושבת על זה...</p>
+            </div>
+
+            <div id="aiResultBox" style="display: none; margin-top: 20px; text-align: right; background: rgba(15, 23, 42, 0.8); padding: 20px; border-radius: 10px; border: 1px solid #8b5cf6; color: #e2e8f0;">
+                 <!-- התוצאה תוזרק לכאן -->
+            </div>
+        </div>
+    `;
+
+    $("#detailsModalBody").html(detailsHtml);
+    $("#detailsModal").fadeIn();
+}
+
+// פונקציית הקריאה לשרת ה-AI
+function generateAIItinerary(countryName) {
+    if (!isLoggedIn()) {
+        alert("רק משתמשים מחוברים יכולים להשתמש בסוכן הנסיעות החכם. אנא התחבר תחילה.");
+        return;
+    }
+    let userMsg = $("#aiUserInput").val();
+
+    // נוודא שהמשתמש באמת כתב משהו
+    if (!userMsg || userMsg.trim() === "") {
+        alert("אנא כתוב בקשה או שאלה לבינה המלאכותית לפני השליחה.");
+        return;
+    }
+
+    $("#btnAiItinerary").hide();
+    $("#aiResultBox").hide();
+    $("#aiLoading").fadeIn();
+
+    // מכינים את האובייקט לשליחה לשרת (תואם למחלקת AiRequest ב-C#)
+    let requestData = {
+        CountryName: countryName,
+        UserPrompt: userMsg
+    };
+
+    $.ajax({
+        type: "POST", // שינינו ל-POST!
+        url: `https://localhost:7277/api/AI/AskAI`,
+        contentType: "application/json",
+        data: JSON.stringify(requestData),
+        success: function (data) {
+            $("#aiLoading").hide();
+            $("#btnAiItinerary").show();
+            // מרוקנים את תיבת הטקסט לטובת השאלה הבאה
+            $("#aiUserInput").val("");
+            $("#aiResultBox").html(data.itinerary).fadeIn();
+        },
+        error: function (err) {
+            $("#aiLoading").hide();
+            $("#btnAiItinerary").show();
+            let serverError = err.responseText ? err.responseText : "לא ניתן להתחבר לשרת ה-C#";
+            alert("תקלת שרת: " + serverError);
+            console.error("פרטי השגיאה:", err);
+        }
+    });
+}
+
+function closeDetailsModal() {
+    $("#detailsModal").fadeOut();
+}
+
+// =========================================
+// מנגנון העלמת מסך הטעינה (Preloader)
+// =========================================
+$(window).on('load', function () {
+    // הוספנו השהייה קלה של 800 אלפיות השנייה (קצת פחות משנייה)
+    // כדי לתת לשרת לסיים לשלוף את המדינות, וכדי שנספיק לראות את האפקט
+    setTimeout(function () {
+        $("#preloader").fadeOut(600, function () {
+            // אחרי שהמסך התפוגג, נסיר אותו לגמרי מה-DOM כדי שלא יפריע ללחיצות
+            $(this).remove();
+        });
+    }, 800);
+});
+// =========================================
+// מנוע כדור ארץ תלת-ממדי כרקע כללי (Globe.gl)
+// =========================================
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById('globeBackground');
+    if (!container) return;
+
+    // נקודות ציון גלובליות שיופיעו על כדור הארץ ברקע
+    const globalPoints = [
+        { lat: 32.0853, lng: 34.7818, name: "תל אביב (הבסיס שלנו)", color: "#2ecc71", size: 1.5 },
+        { lat: 44.4268, lng: 26.1025, name: "בוקרשט", color: "#f39c12", size: 1.2 },
+        { lat: 35.6762, lng: 139.6503, name: "טוקיו", color: "#ef4444", size: 1.5 },
+        { lat: 31.2304, lng: 121.4737, name: "שנגחאי", color: "#3b82f6", size: 1.2 },
+        { lat: 51.5074, lng: -0.1278, name: "לונדון", color: "#a855f7", size: 1.2 }
+    ];
+
+    // יצירת הכדור על כל מסך החלון
+    const World = Globe()
+        (container)
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg') // מפת לילה מוארת
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')   // טופוגרפיה
+        .backgroundColor('rgba(15, 23, 42, 0.85)') // רקע כהה שקוף שמשתלב עם האתר
+        .pointsData(globalPoints)
+        .pointLat('lat')
+        .pointLng('lng')
+        .pointColor('color')
+        .pointAltitude(0.01)
+        .pointRadius(d => d.size)
+        .pointLabel('name');
+
+    // התאמה ראשונית לגודל המסך
+    World.width(window.innerWidth);
+    World.height(window.innerHeight);
+
+    // עדכון אוטומטי אם משנים את גודל חלון הדפדפן
+    window.addEventListener('resize', () => {
+        World.width(window.innerWidth);
+        World.height(window.innerHeight);
+    });
+
+    // סיבוב אוטומטי איטי ויוקרתי ברקע
+    World.controls().autoRotate = true;
+    World.controls().autoRotateSpeed = 0.4;
+
+    // זווית התחלתית מרכזית לכיוון אזור המזרח התיכון/אירופה
+    World.pointOfView({ lat: 25, lng: 35, altitude: 2.3 });
+});

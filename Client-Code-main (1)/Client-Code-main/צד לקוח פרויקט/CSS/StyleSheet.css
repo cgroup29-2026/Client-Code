@@ -836,3 +836,294 @@ select.form-control option {
     .btn-demote:hover {
         background: #d97706;
     }
+
+/* =========================================
+   מבנה דף המפה (my-lists.html)
+   ========================================= */
+.map-page-wrapper {
+    display: flex;
+    flex-direction: row; /* RTL: העמודה הראשונה תהיה מימין */
+    gap: 30px;
+    align-items: flex-start;
+}
+
+/* עמודת הצד (רשימות) */
+.lists-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.list-box {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 20px;
+    max-height: 350px;
+    overflow-y: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+    .list-box h3 {
+        margin: -20px -20px 15px -20px; /* מותח את הכותרת לצדדים ולמעלה כדי לכסות את הריווח של הקופסה */
+        padding: 20px; /* מחזיר את הריווח לטקסט עצמו כדי שייראה טוב */
+        color: white;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: sticky;
+        top: -20px; /* נדבק בדיוק לקצה העליון של הקופסה */
+        background: #0f172a; /* צבע כחול-כהה אטום לחלוטין! חוסם את הטקסט שעובר מתחת */
+        z-index: 10; /* מוודא שהכותרת תמיד תהיה מעל המדינות */
+    }
+
+/* העמודה המרכזית (המפה) */
+.map-main-area {
+    flex-grow: 1;
+    /* רקע כהה כמעט אטום כדי להפריד מהתמונה שמאחור! */
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+/* מקרא המפה */
+.map-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 25px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.color-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: inline-block;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* התאמה למסכים קטנים (רספונסיביות) */
+@media (max-width: 1024px) {
+    .map-page-wrapper {
+        flex-direction: column; /* במסך קטן, הרשימות יקפצו מתחת למפה */
+    }
+
+    .lists-sidebar {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   עיצוב חלונית פרטי מדינה
+   ========================================= */
+.details-grid-modal {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* שתי עמודות */
+    gap: 20px;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.detail-item {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+    .detail-item i {
+        font-size: 1.3rem;
+        width: 25px;
+        text-align: center;
+    }
+
+    .detail-item strong {
+        color: white;
+    }
+
+/* התאמה למסכים קטנים (פלאפונים) */
+@media (max-width: 600px) {
+    .details-grid-modal {
+        grid-template-columns: 1fr; /* עמודה אחת במסך קטן */
+    }
+}
+
+/* עיצוב כפתור הסגירה של המודלים (האיקס) */
+.close-btn {
+    color: #94a3b8;
+    float: left; /* או right, תלוי בכיוון ה-RTL שלך, אבל בדרך כלל ב-RTL נשים משמאל */
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer; /* <--- זה מה שמתקן את הבעיה! הופך את העכבר ליד */
+    transition: color 0.2s ease-in-out, transform 0.2s;
+}
+
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #ef4444; /* צבע אדום במעבר עכבר */
+        text-decoration: none;
+        transform: scale(1.2); /* גודל טיפה יותר כדי להרגיש אינטראקטיבי */
+    }
+
+/* עיצוב התוכן החוזר מהבינה המלאכותית */
+#aiResultBox h3 {
+    color: #a78bfa;
+    border-bottom: 1px dashed rgba(167, 139, 250, 0.3);
+    padding-bottom: 5px;
+    margin-top: 20px;
+}
+
+#aiResultBox ul {
+    padding-right: 20px;
+}
+
+#aiResultBox li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+/* =========================================
+   תיקון גלישה למודל פרטי מדינה וה-AI
+   ========================================= */
+#detailsModal .modal-content {
+    max-height: 90vh; /* מונע מהחלון לברוח מגבולות המסך */
+    overflow-y: auto; /* מוסיף פס גלילה פנימי כשהתוכן מתארך */
+    scrollbar-width: thin; /* עידון פס הגלילה בפיירפוקס */
+    scrollbar-color: #8b5cf6 rgba(15, 23, 42, 0.8);
+}
+
+    /* עיצוב פס הגלילה הפנימי לדפדפני כרום ואדג' */
+    #detailsModal .modal-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #detailsModal .modal-content::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    #detailsModal .modal-content::-webkit-scrollbar-thumb {
+        background: #8b5cf6;
+        border-radius: 10px;
+    }
+
+        #detailsModal .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+
+/* =========================================
+   מסך טעינה עם לוגו (Preloader)
+   ========================================= */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0f172a; /* צבע הרקע התואם לאתר שלך */
+    z-index: 99999; /* מוודא שזה מסתיר הכל */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+}
+
+.loader-content {
+    text-align: center;
+    color: #cbd5e1;
+    font-family: inherit;
+}
+
+/* אנימציית פעימה ללוגו של גינס */
+.guinness-pulse {
+    width: 180px; /* גודל הלוגו */
+    margin-bottom: 20px;
+    animation: pulse-guinness 1.5s infinite;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15));
+}
+
+@keyframes pulse-guinness {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+/* אנימציית הבהוב לטקסט */
+.loader-content p {
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin: 0;
+    animation: blink-text 1.5s infinite;
+}
+
+@keyframes blink-text {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* =========================================
+   הגדרות כדור ארץ תלת-ממדי כרקע כללי
+   ========================================= */
+#globeBackground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -999; /* יושב תמיד מאחורי כל האלמנטים באתר */
+    overflow: hidden;
+    pointer-events: auto; /* מאפשר למשתמש לסובב את כדור הארץ עם העכבר גם ברקע! */
+}
+
+/* מוודא שכל שאר התוכן באתר יושב מעל הרקע ונשאר לחיץ לחלוטין */
+body {
+    background-color: #0f172a; /* גיבוי כהה לזמן הטעינה */
+    overflow-x: hidden;
+}
+
+header, main, .container, .modal, .lists-sidebar, .countries-grid {
+    position: relative;
+    z-index: 10; /* שומר שהם תמיד יהיו מעל כדור הארץ */
+}

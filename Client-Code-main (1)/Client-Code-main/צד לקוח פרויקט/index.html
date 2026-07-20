@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WorldExplorer - חוקרים את העולם</title>
-
+    <!-- ספריות לתצוגת כדור ארץ תלת-ממדי -->
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
     <link rel="stylesheet" href="CSS/StyleSheet.css">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -14,7 +16,15 @@
 
 </head>
 <body>
-
+    <!-- כדור ארץ תלת-ממדי כרקע הכללי של האתר -->
+    <div id="globeBackground"></div>
+    <!-- מסך טעינה - Preloader -->
+    <div id="preloader">
+        <div class="loader-content">
+            <!-- לוגו של גינס עם רקע שקוף -->
+            <p>מוזג את הנתונים... 🍻</p>
+        </div>
+    </div>
     <header>
         <div class="logo">
             <i class="fas fa-globe-americas"></i> WorldExplorer
@@ -138,6 +148,16 @@
         <div style="display: flex; justify-content: space-between;">
             <button onclick="confirmSaveToList()" class="form-control" style="width: 48%; background: #22c55e; color: white; border: none; cursor: pointer;">שמור</button>
             <button onclick="closeSaveModal()" class="form-control" style="width: 48%; background: #ef4444; color: white; border: none; cursor: pointer;">ביטול</button>
+        </div>
+    </div>
+
+    <!-- מודל פרטי מדינה מורחבים -->
+    <div id="detailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 650px; padding: 40px;">
+            <span class="close-btn" onclick="closeDetailsModal()">&times;</span>
+            <div id="detailsModalBody">
+                <!-- תוכן פרטי המדינה יוזרק לכאן דינמית -->
+            </div>
         </div>
     </div>
 
